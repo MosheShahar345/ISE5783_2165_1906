@@ -41,11 +41,8 @@ public class Plane implements Geometry {
      */
     public Plane(Point p1, Point p2, Point p3){
         this.p0 = p1;
-
-        Vector N = (p1.subtract(p2)).crossProduct(p1.subtract(p3));   // AB X AC
-
         //right hand rule
-        this.normal = N.normalize();
+        this.normal = (p1.subtract(p2)).crossProduct(p1.subtract(p3)).normalize();
     }
 
     /**
