@@ -77,7 +77,9 @@ public class Vector extends Point {
      * @return the squared length of this vector.
      */
     public double lengthSquared() {
-        return this.dotProduct(this);
+        return this.xyz.d1 *this.xyz.d1
+                + this.xyz.d2 *this.xyz.d2
+                +this.xyz.d3 *this.xyz.d3;
     }
 
     /**
@@ -94,7 +96,9 @@ public class Vector extends Point {
      * @throws ArithmeticException if the length of this vector is zero.
      */
     public Vector normalize(){
-        return new Vector(xyz.scale(1 / length()));
+        double len = length();
+
+        return new Vector(xyz.reduce(len));
     }
 
     @Override

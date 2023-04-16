@@ -3,6 +3,8 @@ package geometries;
 import primitives.Point;
 import primitives.Vector;
 
+import static primitives.Util.isZero;
+
 /**
  * The Plane class represents a two-dimensional plane in a 3D Cartesian coordinate system.
  * It implements the Geometry interface.
@@ -10,10 +12,10 @@ import primitives.Vector;
 public class Plane implements Geometry {
 
     /** The base point of the plane */
-    private Point p0;
+    final private Point p0;
 
     /** The normal vector of the plane */
-    private Vector normal;
+   final  private Vector normal;
 
     /**
      * Constructs a Plane object with the given base point and normal vector.
@@ -23,7 +25,7 @@ public class Plane implements Geometry {
      */
     public Plane(Point p0, Vector normal) {
         this.p0 = p0;
-        if (normal.length() != 1) { // if the vector is not normalized
+        if (!isZero(normal.length() - 1d)) { // if the vector is not normalized
             normal.normalize();
         }
         this.normal = normal;
@@ -39,8 +41,11 @@ public class Plane implements Geometry {
      */
     public Plane(Point p1, Point p2, Point p3){
         this.p0 = p1;
-        this.normal = (p2.subtract(p1)).crossProduct(p3.subtract(p1));
-        this.normal.normalize();
+
+        Vector N = (p1.subtract(p2)).crossProduct(p1.subtract(p3));   // AB X AC
+
+        //right hand rule
+        this.normal = N.normalize();
     }
 
     /**
