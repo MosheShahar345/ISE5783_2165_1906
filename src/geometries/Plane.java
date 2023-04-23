@@ -15,7 +15,7 @@ public class Plane implements Geometry {
     final private Point p0;
 
     /** The normal vector of the plane */
-   final  private Vector normal;
+     final  private Vector normal;
 
     /**
      * Constructs a Plane object with the given base point and normal vector.
@@ -41,8 +41,13 @@ public class Plane implements Geometry {
      */
     public Plane(Point p1, Point p2, Point p3){
         this.p0 = p1;
-        //right hand rule
-        this.normal = (p1.subtract(p2)).crossProduct(p1.subtract(p3)).normalize();
+
+        Vector U = p1.subtract(p2); // AB
+        Vector V = p1.subtract(p3); // AC
+
+        Vector N = U.crossProduct(V); // AB x AC
+
+        this.normal = N.normalize(); // right hand rule
     }
 
     /**

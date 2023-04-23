@@ -3,6 +3,7 @@ package geometries;
 import primitives.Point;
 import primitives.Ray;
 import primitives.Vector;
+import static primitives.Util.*;
 
 /**
  * Cylinder class represents a cylinder in 3D Cartesian coordinate system.
@@ -11,7 +12,7 @@ import primitives.Vector;
 public class Cylinder extends Tube {
 
     /** height of the tube */
-    private double height;
+    final private double height;
 
     /**
      * Creates a new Cylinder object with the given radius, axis ray, and height.
@@ -19,7 +20,7 @@ public class Cylinder extends Tube {
      * @param axisRay  the axis ray of the cylinder
      * @param height   the height of the cylinder
      */
-    public Cylinder(double radius, Ray axisRay, double height) {
+    public Cylinder(Ray axisRay, double radius, double height) {
         super(radius, axisRay);
         this.height = height;
     }
@@ -33,6 +34,21 @@ public class Cylinder extends Tube {
 
     @Override
     public Vector getNormal(Point point) {
-        return null;
+        Vector v = axisRay.getDir();
+        Point p0 = axisRay.getP0();
+        Point topP = p0.add(v.scale(height));
+
+        // Check if the given point is on the top of the cylinder
+        if (point.equals(topP) || isZero(v.dotProduct(point.subtract(topP)))){
+            return v.normalize();
+        }
+
+        // Check if the given point is on the bottom of the cylinder
+        if (point.equals(p0) || isZero(v.dotProduct(point.subtract(p0)))){
+            return v.normalize();
+        }
+
+        // If neither of them then compute like a tube
+        return super.getNormal(point);
     }
 }
