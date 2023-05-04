@@ -1,8 +1,12 @@
 package geometries;
 
 import primitives.Point;
+import primitives.Ray;
 import primitives.Vector;
 
+import java.util.List;
+
+import static primitives.Util.alignZero;
 import static primitives.Util.isZero;
 
 /**
@@ -11,10 +15,10 @@ import static primitives.Util.isZero;
  */
 public class Plane implements Geometry {
 
-    /** The base point of the plane */
-    final private Point p0;
+     /** The base point of the plane */
+     final private Point q0;
 
-    /** The normal vector of the plane */
+     /** The normal vector of the plane */
      final  private Vector normal;
 
     /**
@@ -24,11 +28,13 @@ public class Plane implements Geometry {
      * @param normal the normal vector of the plane
      */
     public Plane(Point p0, Vector normal) {
-        this.p0 = p0;
-        if (!isZero(normal.length() - 1d)) { // if the vector is not normalized
-            normal.normalize();
+        this.q0 = p0;
+        double d = alignZero(normal.length() - 1);
+        if (!isZero(d)) { // if the vector is not normalized
+            this.normal = normal.normalize();
         }
-        this.normal = normal;
+        else
+            this.normal = normal;
     }
 
     /**
@@ -40,21 +46,21 @@ public class Plane implements Geometry {
      * @param p3 a third point on the plane
      */
     public Plane(Point p1, Point p2, Point p3){
-        this.p0 = p1;
+        this.q0 = p1;
 
-        Vector U = p1.subtract(p2); // AB
-        Vector V = p1.subtract(p3); // AC
+        Vector u = p1.subtract(p2); // AB
+        Vector v = p1.subtract(p3); // AC
 
-        Vector N = U.crossProduct(V); // AB x AC
+        Vector n = u.crossProduct(v); // AB x AC
 
-        this.normal = N.normalize(); // right hand rule
+        this.normal = n.normalize(); // right hand rule
     }
 
     /**
-     * @return the base point of the plane
+     * @return referenced 3D point of the plane
      */
-    public Point getP0() {
-        return p0;
+    public Point getQ0() {
+        return q0;
     }
 
     /**
@@ -67,5 +73,39 @@ public class Plane implements Geometry {
     @Override
     public Vector getNormal(Point point) {
         return normal;
+    }
+
+    @Override
+    public List<Point> findIntersections(Ray ray) {
+        Vector v = ray.getDir();
+        Point p0 = ray.getP0();
+        Vector n = normal;
+
+        // Check if the point of the ray is the reference point of the plane
+        if (q0.equals(p0)){
+            return null;
+        }
+
+        double nv = alignZero(n.dotProduct(v)); // Denominator
+
+        // Ray's lying in the plane axis
+        if (isZero(nv)) {
+            return null;
+        }
+
+        double nP0Q0 = alignZero(n.dotProduct(q0.subtract(p0))); // Numerator
+
+        // Ray's parallel to the plane
+        if (isZero(nP0Q0)) {
+            return null;
+        }
+
+        double t = alignZero(nP0Q0 / nv);
+
+        if (t < 0) {
+            return null;
+        }
+
+        return List.of(ray.getPoint(t));
     }
 }

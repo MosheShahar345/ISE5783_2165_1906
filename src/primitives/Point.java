@@ -29,6 +29,26 @@ public class Point {
     }
 
     /**
+     * @return the X coordinate of the point
+     */
+    public double getX() {
+        return xyz.d1;
+    }
+
+    /**
+     * @return the Y coordinate of the point
+     */
+    public double getY() {
+        return xyz.d2;
+    }
+
+    /**
+     * @return the Z coordinate of the point
+     */
+    public double getZ() {
+        return xyz.d3;
+    }
+    /**
      * Returns the vector from this point to the specified point.
      * @param point the point to subtract from this point
      * @return the vector from this point to the specified point

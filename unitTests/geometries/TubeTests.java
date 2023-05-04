@@ -5,6 +5,7 @@ import primitives.Point;
 import primitives.Vector;
 import primitives.Ray;
 import static org.junit.jupiter.api.Assertions.*;
+import static primitives.Util.*;
 
 /** Testing Tube */
 class TubeTests {

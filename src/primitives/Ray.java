@@ -2,6 +2,9 @@ package primitives;
 
 import java.util.Objects;
 
+import static primitives.Util.alignZero;
+import static primitives.Util.isZero;
+
 /**
  * Ray class represents a ray in 3D Cartesian coordinate system
  */
@@ -15,15 +18,17 @@ public class Ray {
 
     /**
      * Constructs a Ray object with the given origin point and direction vector.
-     * @param p0  the origin point of the ray
+     * @param p0 the origin point of the ray
      * @param dir the direction vector of the ray
      */
     public Ray(Point p0, Vector dir) {
         this.p0 = p0;
-        if (dir.length() != 1) { // if the vector is not normalized
-            dir.normalize();
+        double d = alignZero(dir.length() - 1);
+        if (!isZero(d)) { // if the vector is not normalized
+            this.dir = dir.normalize();
         }
-        this.dir = dir;
+        else
+            this.dir = dir;
     }
 
     /**
@@ -38,6 +43,19 @@ public class Ray {
      */
     public Vector getDir() {
         return dir;
+    }
+
+    /***
+     * Returns a new point that is located at a distance of delta along the direction
+     * of this line segment, starting from point p0.
+     * @param delta the distance from p0 along the line segment direction
+     * @return a new Point object representing the point located at delta along the line segment
+     */
+    public Point getPoint(double delta) {
+        if (isZero(delta)) {
+            return p0;
+        }
+        return p0.add(dir.scale(delta));
     }
 
     @Override

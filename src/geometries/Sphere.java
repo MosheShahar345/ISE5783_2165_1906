@@ -1,7 +1,10 @@
 package geometries;
 
 import primitives.Point;
+import primitives.Ray;
 import primitives.Vector;
+import static primitives.Util.*;
+import java.util.List;
 
 /**
  * The Sphere class represents a two-dimensional sphere in a 3D Cartesian coordinate system.
@@ -31,7 +34,43 @@ public class Sphere extends RadialGeometry {
 
     @Override
     public Vector getNormal(Point point) {
-        Vector v = center.subtract(point);
+        Vector v = point.subtract(center);
         return v.normalize();
     }
+
+    @Override
+    public List<Point> findIntersections(Ray ray) {
+        double tm = 0, d = 0;
+        Vector v = ray.getDir();
+        Point p0 = ray.getP0();
+
+        // Ensuring the reference point of ray is not the center of the sphere
+        if (!this.center.equals(p0)) {
+            Vector u = this.center.subtract(ray.getP0());
+            tm = v.dotProduct(u);
+            d = Math.sqrt(u.dotProduct(u) - tm * tm);
+        }
+
+        // Check if the distance from ray to center is bigger than the radius
+        if (d >= this.radius) {
+            return null; // There are no intersections
+        }
+
+        double th = Math.sqrt(this.radius * this.radius - d * d);
+        double t1 = alignZero(tm - th);
+        double t2 = alignZero(tm + th);
+
+        if (t1 > 0 && t2 > 0) { // There are two points intersecting
+            return List.of(ray.getPoint(t1),ray.getPoint(t2));
+        }
+        if (t1 > 0 && t2 <= 0) { // There is only one point intersecting (p1)
+            return List.of(ray.getPoint(t1));
+        }
+        if (t2 > 0 && t1 <= 0) { // There is only one point intersecting (p2)
+            return List.of(ray.getPoint(t2));
+        }
+
+        return null;
+    }
 }
+
