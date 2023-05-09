@@ -19,7 +19,7 @@ public class Plane implements Geometry {
      final private Point q0;
 
      /** The normal vector of the plane */
-     final  private Vector normal;
+     final private Vector normal;
 
     /**
      * Constructs a Plane object with the given base point and normal vector.

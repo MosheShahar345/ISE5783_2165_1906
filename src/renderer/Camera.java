@@ -2,6 +2,8 @@ package renderer;
 import primitives.Point;
 import primitives.Ray;
 import primitives.Vector;
+import primitives.Color;
+import java.util.*;
 import static primitives.Util.*;
 
 /**
@@ -47,6 +49,36 @@ public class Camera {
      * Object's actual height
      */
     private double height;
+
+    /**
+     * The ImageWriter object used to save the rendered image.
+     */
+    private ImageWriter imageWriter;
+
+    /**
+     * The RayTracerBase object used to trace rays in the scene.
+     */
+    private  RayTracerBase rayTracer;
+
+    /**
+     * Sets the ImageWriter object for this camera.
+     * @param imageWriter the ImageWriter object to be set
+     * @return this (Builder design pattern)
+     */
+    public Camera setImageWriter(ImageWriter imageWriter) {
+        this.imageWriter = imageWriter;
+        return this;
+    }
+
+    /**
+     * Sets the RayTracerBase object for this camera.
+     * @param rayTracer the RayTracerBase object to be set
+     * @return this (Builder design pattern)
+     */
+    public Camera setRayTracer(RayTracerBase rayTracer) {
+        this.rayTracer = rayTracer;
+        return this;
+    }
 
     /**
      * @return the distance
@@ -143,5 +175,100 @@ public class Camera {
         Vector vIJ = pIJ.subtract(p0);
 
         return new Ray(p0, vIJ);
+    }
+
+    /**
+     * Renders the image by tracing rays for each pixel and writing the corresponding color to the image.
+     * @return this (Builder design pattern)
+     * @throws MissingResourceException if the imageWriter or rayTracer field is null.
+     */
+    public Camera renderImage() {
+        try {
+            // Check if the imageWriter field is not null, otherwise throw a MissingResourceException
+            if (imageWriter == null) {
+                throw new MissingResourceException("Empty field", ImageWriter.class.getName(), "");
+            }
+            // Check if the rayTracer field is not null, otherwise throw a MissingResourceException
+            if (rayTracer == null) {
+                throw new MissingResourceException("Empty field", RayTracerBase.class.getName(), "");
+            }
+        }
+        catch (UnsupportedOperationException e) {
+            // If any other exception is thrown during the execution of the function, catch it and throw an UnsupportedOperationException
+            throw new UnsupportedOperationException("Not implemented yet" + e.getClass());
+        }
+
+        // Get the dimensions of the image from the imageWriter object
+        int nY = imageWriter.getNy();
+        int nX = imageWriter.getNx();
+        // Loop over each pixel in the image and call the castRay function with the pixel coordinates
+        for (int i = 0; i < nY; i++) {
+            for (int j = 0; j < nX; j++) {
+                castRay(nX ,nY, i, j);
+            }
+        }
+
+        // Return the instance of the Camera object to support chaining with other methods
+        return this;
+    }
+
+    /**
+     * Casts a ray from the camera's position through a specific pixel in the view plane,
+     * calculates the color of the intersection point with the scene and writes it to
+     * the corresponding pixel in the image.
+     * @param nX The number of pixels in the horizontal axis.
+     * @param nY The number of pixels in the vertical axis.
+     * @param i The horizontal coordinate of the pixel.
+     * @param j The vertical coordinate of the pixel.
+     */
+    private void castRay(int nX, int nY, int i, int j) {
+        // Construct a ray from the camera's position through the specified pixel in the view plane
+        Ray ray = constructRay(nX, nY, j, i);
+        // Use the rayTracer object to calculate the color of the intersection point with the scene
+        Color color = rayTracer.traceRay(ray);
+        // Write the color to the corresponding pixel in the image using the imageWriter object
+        imageWriter.writePixel(j, i, color);
+    }
+
+    /**
+     * Prints a grid of lines with a given interval and color on the image.
+     * If the ImageWriter is null, a MissingResourceException is thrown.
+     * The method loops through the image and sets the pixels corresponding to the
+     * grid lines to the given color.
+     * @param interval The interval between grid lines
+     * @param color The color of the grid lines
+     * @throws MissingResourceException If the ImageWriter object is null
+     */
+    public void printGrid(int interval, Color color) {
+        // Throw an exception if the ImageWriter object is null
+        if (imageWriter == null) {
+            throw new MissingResourceException("Empty field", ImageWriter.class.getName(), "");
+        }
+
+        // Loop through the image and set the pixels corresponding to the grid lines to the given color
+        for (int i = 0; i < imageWriter.getNy(); i++) {
+            for (int j = 0; j < imageWriter.getNx(); j++) {
+                // If the pixel is on a grid line (either horizontal or vertical)
+                if (i % interval == 0 || j % interval == 0) {
+                    // Set the pixel to the specified color
+                    imageWriter.writePixel(j, i, color);
+                }
+            }
+        }
+    }
+
+    /**
+     * Writes the rendered image to an image file using the image writer object.
+     * Throws a MissingResourceException if the imageWriter object is null.
+     * @throws MissingResourceException If the ImageWriter object is null.
+     */
+    public void writeToImage() {
+        // Throw an exception if the ImageWriter object is null
+        if (imageWriter == null) {
+            throw new MissingResourceException("Empty field", ImageWriter.class.getName(), "");
+        }
+
+        // Call the writeToImage method of the ImageWriter object to write the image to a file
+        imageWriter.writeToImage();
     }
 }

@@ -15,7 +15,7 @@ import static primitives.Util.*;
 public class Tube extends RadialGeometry {
 
     /** The axis ray of the tube */
-    protected Ray axisRay;
+    final protected Ray axisRay;
 
     /**
      * Constructs a Tube object with the given radius and axis ray.

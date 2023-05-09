@@ -1,5 +1,5 @@
 package primitives;
-
+import primitives.Double3.*;
 import java.util.Objects;
 
 /**

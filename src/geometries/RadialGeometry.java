@@ -7,7 +7,7 @@ package geometries;
 public abstract class RadialGeometry implements Geometry {
 
     /** The radius of the shape */
-    protected double radius;
+    final protected double radius;
 
     /**
      * Constructs a RadialGeometry object with the given radius.

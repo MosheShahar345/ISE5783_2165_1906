@@ -13,7 +13,7 @@ import java.util.List;
 public class Sphere extends RadialGeometry {
 
     /** The center of the sphere */
-    private Point center;
+    final private Point center;
 
     /**
      * Constructs a Sphere object with the given radius and center point.

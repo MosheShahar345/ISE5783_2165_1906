@@ -11,10 +11,10 @@ import java.util.List;
 public class Ray {
 
     /** Point of reference */
-    private Point p0;
+    final private Point p0;
 
     /** Vector of the ray*/
-    private Vector dir;
+    final private Vector dir;
 
     /**
      * Constructs a Ray object with the given origin point and direction vector.

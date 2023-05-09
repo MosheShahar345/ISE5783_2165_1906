@@ -31,7 +31,5 @@ class ImageWriterTests {
                     imageWriter.writePixel(j, i, red);
             }
         }
-
-        imageWriter.writeToImage();
     }
 }
