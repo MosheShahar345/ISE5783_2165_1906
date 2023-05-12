@@ -6,12 +6,7 @@ import primitives.Double3;
 /**
  * This class represents an ambient light source that uniformly illuminates the scene.
  */
-public class AmbientLight {
-
-    /**
-     * The intensity of the ambient light source.
-     */
-    final private Color intensity;
+public class AmbientLight extends Light {
 
     /**
      * A constant representing no ambient light.
@@ -24,8 +19,7 @@ public class AmbientLight {
      * @param Ka the ambient coefficient
      */
     public AmbientLight(Color Ia, Double3 Ka) {
-        Color Ip = Ia.scale(Ka);
-        this.intensity = Ip;
+        super(Ia.scale(Ka));
     }
 
     /**
@@ -34,15 +28,6 @@ public class AmbientLight {
      * @param Ka the ambient coefficient
      */
     public AmbientLight(Color Ia, double Ka) {
-        Color Ip = Ia.scale(Ka);
-        this.intensity = Ip;
-    }
-
-    /**
-     * Gets the intensity of the ambient light source.
-     * @return the intensity of the ambient light source
-     */
-    public Color getIntensity() {
-        return intensity;
+        super(Ia.scale(Ka));
     }
 }

@@ -4,7 +4,7 @@ package geometries;
  * The RadialGeometry abstract class represents a two-dimensional radial-geometry shape
  * in a 3D Cartesian coordinate system. It implements the Geometry interface.
  */
-public abstract class RadialGeometry implements Geometry {
+public abstract class RadialGeometry extends Geometry {
 
     /** The radius of the shape */
     final protected double radius;
