@@ -52,7 +52,9 @@ public class Triangle extends Polygon {
         // If all three dot products have the same sign, the ray
         // intersects the triangle's plane at a point inside the triangle
         if ((res1 > 0 && res2 > 0 && res3 > 0) || (res1 < 0 && res2 < 0 && res3 < 0)){
-            return List.of(new GeoPoint(this, this.plane.findGeoIntersections(ray).get(0).point));
+            var list = plane.findGeoIntersections(ray);
+            if (list == null) return null;
+            return List.of(new GeoPoint(this, list.get(0).point));
         }
 
         return null;
