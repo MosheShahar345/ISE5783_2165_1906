@@ -57,9 +57,9 @@ public abstract class Intersectable {
     }
 
     /**
-     * Finds the intersections of the ray with the geometry.
-     * @param ray the ray to find intersections with
-     * @return a list of intersection points, or null if no intersections were found
+     * Finds the intersections between a ray and the geometry objects.
+     * @param ray The ray to find intersections with.
+     * @return A list of intersection points.
      */
     public List<Point> findIntersections(Ray ray) {
         var geoList = findGeoIntersections(ray);
@@ -67,18 +67,31 @@ public abstract class Intersectable {
     }
 
     /**
-     * Finds the geometric intersections of the ray with the geometry.
-     * @param ray the ray to find geometric intersections with
-     * @return a list of geometric intersection points
+     * Finds the intersections between a ray and the geometry objects.
+     * The maximum distance is considered as positive infinity.
+     * @param ray The ray to find intersections with.
+     * @return A list of geometric intersection points.
      */
     public final List<GeoPoint> findGeoIntersections(Ray ray) {
-        return findGeoIntersectionsHelper(ray);
+        return findGeoIntersections(ray, Double.POSITIVE_INFINITY);
     }
 
     /**
-     * Helper method for finding geometric intersections of the ray with the geometry.
-     * @param ray the ray to find geometric intersections with
-     * @return a list of geometric intersection points
+     * Finds the intersections between a ray and the geometry objects within a maximum distance.
+     * @param ray         The ray to find intersections with.
+     * @param maxDistance The maximum distance to consider for intersections.
+     * @return A list of geometric intersection points.
      */
-    protected abstract List<GeoPoint> findGeoIntersectionsHelper(Ray ray);
+    public final List<GeoPoint> findGeoIntersections(Ray ray, double maxDistance) {
+        return findGeoIntersectionsHelper(ray, maxDistance);
+    }
+
+    /**
+     * Finds the intersections between a ray and the geometry objects within a maximum distance.
+     * This method is meant to be implemented by subclasses.
+     * @param ray         The ray to find intersections with.
+     * @param maxDistance The maximum distance to consider for intersections.
+     * @return A list of geometric intersection points.
+     */
+    protected abstract List<GeoPoint> findGeoIntersectionsHelper(Ray ray, double maxDistance);
 }

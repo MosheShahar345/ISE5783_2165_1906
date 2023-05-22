@@ -14,8 +14,11 @@ public class Ray {
     /** Point of reference */
     final private Point p0;
 
-    /** Vector of the ray*/
+    /** Vector of the ray */
     final private Vector dir;
+
+    /** The delta value used for moving ray's point. */
+    private static final double DELTA = 0.1;
 
     /**
      * Constructs a Ray object with the given origin point and direction vector.
@@ -30,6 +33,24 @@ public class Ray {
         }
         else
             this.dir = dir;
+    }
+
+    /**
+     * Constructs a Ray object with the given head, direction, and normal vectors.
+     * @param head      the starting point of the ray
+     * @param direction the direction vector of the ray
+     * @param normal    the normal vector used for calculations
+     */
+    public Ray(Point head, Vector direction, Vector normal) {
+        this.dir = direction.normalize();
+        double nv = normal.dotProduct(this.dir);
+        if (isZero(nv)) {
+           this.p0 = head;
+        }
+        else {
+            Vector delta = normal.scale(nv > 0 ? DELTA : -DELTA);
+            this.p0 = head.add(delta);
+        }
     }
 
     /**

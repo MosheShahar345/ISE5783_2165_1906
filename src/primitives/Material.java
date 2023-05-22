@@ -21,6 +21,64 @@ public class Material {
     public int nShininess;
 
     /**
+     * The transmission coefficient for transparency.
+     * Represents the attenuation factor for transparency.
+     * kt - "Transparency Attenuation Coefficient"
+     */
+    public Double3 kT = Double3.ZERO;
+
+    /**
+     * The reflection coefficient for reflectivity.
+     * Represents the attenuation factor for reflectivity.
+     * kr - "Reflectivity Attenuation Coefficient"
+     */
+    public Double3 kR = Double3.ZERO;
+
+    /**
+     * Sets the transmission coefficient for transparency.
+     * This coefficient represents the attenuation factor for transparency.
+     * @param kT the transmission coefficient to set
+     * @return this (Builder design pattern).
+     */
+    public Material setKt(Double3 kT) {
+        this.kT = kT;
+        return this;
+    }
+
+    /**
+     * Sets the reflection coefficient for reflectivity.
+     * This coefficient represents the attenuation factor for reflectivity.
+     * @param kR the reflection coefficient to set
+     * @return this (Builder design pattern).
+     */
+    public Material setKr(Double3 kR) {
+        this.kR = kR;
+        return this;
+    }
+
+    /**
+     * Sets the transmission coefficient for transparency.
+     * This coefficient represents the attenuation factor for transparency.
+     * @param kT the transmission coefficient to set
+     * @return this (Builder design pattern).
+     */
+    public Material setKt(double kT) {
+        this.kT = new Double3(kT);
+        return this;
+    }
+
+    /**
+     * Sets the reflection coefficient for reflectivity.
+     * This coefficient represents the attenuation factor for reflectivity.
+     * @param kR the reflection coefficient to set
+     * @return this (Builder design pattern).
+     */
+    public Material setKr(double kR) {
+        this.kR =new Double3(kR);
+        return this;
+    }
+
+    /**
      * Sets the diffuse reflection coefficients of the material.
      * @param kD the diffuse reflection coefficients to set
      * @return this (Builder design pattern).
