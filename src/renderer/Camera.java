@@ -58,7 +58,46 @@ public class Camera {
     /**
      * The RayTracerBase object used to trace rays in the scene.
      */
-    private  RayTracerBase rayTracer;
+    private RayTracerBase rayTracer;
+
+    /**
+     * Flag indicating whether depth of field is enabled.
+     */
+    private Boolean dof = false;
+
+    /**
+     * Radius of the aperture for depth of field.
+     */
+    private double apertureRadius = 0;
+
+    /**
+     * Focal length for depth of field.
+     */
+    private double focalLength = 0;
+
+    /**
+     * List of points within the aperture for depth of field.
+     */
+    private List<Point> dofPoints = null;
+
+    /**
+     * Density of points within the aperture for depth of field.
+     */
+    private int density;
+
+    private boolean adaptive = false;
+
+    private int multithreading = 1;
+
+    public Camera setAdaptive(boolean adaptive) {
+        this.adaptive = adaptive;
+        return this;
+    }
+
+    public Camera setMultithreading(int multithreading) {
+        this.multithreading = multithreading;
+        return this;
+    }
 
     /**
      * Sets the ImageWriter object for this camera.
@@ -99,6 +138,96 @@ public class Camera {
      */
     public double getHeight() {
         return height;
+    }
+
+    /**
+     * Returns the flag indicating whether depth of field is enabled.
+     * @return The depth of field flag.
+     */
+    public Boolean getDof() {
+        return dof;
+    }
+
+    /**
+     * Returns the radius of the aperture for depth of field.
+     * @return The aperture radius.
+     */
+    public double getApertureRadius() {
+        return apertureRadius;
+    }
+
+    /**
+     * Returns the focal length for depth of field.
+     * @return The focal length.
+     */
+    public double getFocalLength() {
+        return focalLength;
+    }
+
+    /**
+     * Returns the list of points within the aperture for depth of field.
+     * @return The list of depth of field points.
+     */
+    public List<Point> getDofPoints() {
+        return dofPoints;
+    }
+
+    /**
+     * Returns the density of points within the aperture for depth of field.
+     * @return The density of depth of field points.
+     */
+    public int getDensity() {
+        return density;
+    }
+
+    /**
+     * Sets the flag indicating whether depth of field is enabled.
+     * @param dof The depth of field flag to set.
+     * @return this (Builder design pattern)
+     */
+    public Camera setDof(Boolean dof) {
+        this.dof = dof;
+        return this;
+    }
+
+    /**
+     * Sets the radius of the aperture for depth of field.
+     * @param apertureRadius The aperture radius to set.
+     * @return this (Builder design pattern)
+     */
+    public Camera setApertureRadius(double apertureRadius) {
+        this.apertureRadius = apertureRadius;
+        return this;
+    }
+
+    /**
+     * Sets the focal length for depth of field.
+     * @param focalLength The focal length to set.
+     * @return this (Builder design pattern)
+     */
+    public Camera setFocalLength(double focalLength) {
+        this.focalLength = focalLength;
+        return this;
+    }
+
+    /**
+     * Sets the list of points within the aperture for depth of field.
+     * @param dofPoints The list of depth of field points to set.
+     * @return this (Builder design pattern)
+     */
+    public Camera setDofPoints(List<Point> dofPoints) {
+        this.dofPoints = dofPoints;
+        return this;
+    }
+
+    /**
+     * Sets the density of points within the aperture for depth of field.
+     * @param density The density of depth of field points to set.
+     * @return this (Builder design pattern)
+     */
+    public Camera setDensity(int density) {
+        this.density = density;
+        return this;
     }
 
     /**
@@ -201,10 +330,22 @@ public class Camera {
         // Get the dimensions of the image from the imageWriter object
         int nY = imageWriter.getNy();
         int nX = imageWriter.getNx();
-        // Loop over each pixel in the image and call the castRay function with the pixel coordinates
-        for (int i = 0; i < nY; i++) {
-            for (int j = 0; j < nX; j++) {
-                castRay(nX ,nY, i, j);
+
+        if (dof) { // If depth of field is active
+            dofPoints = Point.pointsInAperture(p0, vUp, vRight, density, apertureRadius);
+            // Loop over each pixel in the image and call the castBeamRay function with the pixel coordinates
+            for (int i = 0; i < nY; i++) {
+                for (int j = 0; j < nX; j++) {
+                    castBeamRay(nX ,nY, i, j, dofPoints);
+                }
+            }
+        }
+        else {
+            // Loop over each pixel in the image and call the castRay function with the pixel coordinates
+            for (int i = 0; i < nY; i++) {
+                for (int j = 0; j < nX; j++) {
+                    castRay(nX ,nY, i, j);
+                }
             }
         }
 
@@ -226,6 +367,23 @@ public class Camera {
         Ray ray = constructRay(nX, nY, j, i);
         // Use the rayTracer object to calculate the color of the intersection point with the scene
         Color color = rayTracer.traceRay(ray);
+        // Write the color to the corresponding pixel in the image using the imageWriter object
+        imageWriter.writePixel(j, i, color);
+    }
+
+    /**
+     * Casts a beam ray through a specific pixel on the view plane and traces it to calculate the color.
+     * @param nX The total number of pixels along the X-axis of the image.
+     * @param nY The total number of pixels along the Y-axis of the image.
+     * @param i The Y-coordinate of the pixel to cast the ray through.
+     * @param j The X-coordinate of the pixel to cast the ray through.
+     * @param points The list of points within the aperture for depth of field.
+     */
+    private void castBeamRay(int nX, int nY, int i, int j, List<Point> points) {
+        // Get the point of a ray from the camera's position through the specified pixel in the view plane
+        Point point = constructRay(nX, nY, j, i).getPoint(focalLength);
+        // Use the rayTracer object to calculate the average color of the beam of rays
+        Color color = rayTracer.traceBeam(Ray.beamOfRays(points, point));
         // Write the color to the corresponding pixel in the image using the imageWriter object
         imageWriter.writePixel(j, i, color);
     }
@@ -270,5 +428,39 @@ public class Camera {
 
         // Call the writeToImage method of the ImageWriter object to write the image to a file
         imageWriter.writeToImage();
+    }
+
+    /**
+     * Rotate camera through axis and angle of rotation
+     * @param axis Axis of rotation
+     * @param theta Angle of rotation (degrees)
+     */
+    public void cameraRotation(Vector axis, double theta)
+    {
+        // Rotate all vector's using Vector.rotateVector Method
+        if (theta == 0) return; // No rotation
+        vUp = vUp.vectorRotation(axis, theta);
+        vRight = vRight.vectorRotation(axis, theta);
+        vTo = vTo.vectorRotation(axis, theta);
+    }
+
+    /**
+     * Move camera (move point of view of the camera)
+     * @param move {@link Vector} Vertical distance
+     */
+    public void moveCamera(Vector move) {
+        // Move Point0 according to params
+        Point newPoint = new Point(p0.getXyz());
+        newPoint=  newPoint.add(move);
+        p0 = newPoint;
+    }
+
+    public Point getP0() {
+        return this.p0;
+    }
+
+    public Camera setP0(Point p) {
+        this.p0 = p;
+        return this;
     }
 }

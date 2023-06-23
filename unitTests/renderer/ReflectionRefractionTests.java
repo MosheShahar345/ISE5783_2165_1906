@@ -1,13 +1,16 @@
 package renderer;
 
 import static java.awt.Color.*;
+
+import geometries.*;
 import lighting.*;
 import org.junit.jupiter.api.Test;
-import geometries.Sphere;
-import geometries.Triangle;
 import primitives.*;
 import renderer.*;
 import scene.Scene;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Tests for reflection and transparency functionality, test for partial shadows (with transparency)
@@ -101,45 +104,6 @@ public class ReflectionRefractionTests {
         camera.setImageWriter(imageWriter) //
                 .setRayTracer(new RayTracerBasic(scene)) //
                 .renderImage() //
-                .writeToImage();
-    }
-
-    /**
-     * Produce a picture of two triangles and three spheres, illuminated by multiple light sources.
-     * Includes transparency and reflection properties on the spheres, and a sphere inside a sphere.
-     */
-    @Test
-    public void myTest() {
-        Camera camera = new Camera(new Point(0, 0, 1000), new Vector(0, 0, -1),
-                new Vector(0, 1, 0)).setVPSize(200, 200).setVPDistance(1000);
-
-        scene.setAmbientLight(new AmbientLight(new Color(WHITE), 0.15));
-
-        scene.getGeometries().add(
-                new Triangle(new Point(-150, -150, -115), new Point(150, -150, -135),
-                        new Point(75, 75, -150)).setMaterial(
-                        new Material().setKd(0.5).setKs(0.5).setShininess(60).setKr(0.09)),
-                new Triangle(new Point(-150, -150, -115), new Point(-70, 70, -140),
-                        new Point(75, 75, -150)).setMaterial(
-                        new Material().setKd(0.5).setKs(0.5).setShininess(60).setKr(0.09)),
-                new Sphere(30d, new Point(60, 50, -50)).setEmission(new Color(RED)).setMaterial(
-                        new Material().setKd(0.2).setKs(0.2).setShininess(30).setKr(0.5)),
-                new Sphere(40d, new Point(-40, -30, -80)).setEmission(new Color(BLUE)).setMaterial(
-                        new Material().setKd(0.4).setKs(0.4).setShininess(50).setKt(0.8)),
-                new Sphere(20d, new Point(-40, -30, -80)).setEmission(new Color(RED)).setMaterial(
-                        new Material().setKd(0.2).setKs(0.2).setShininess(10).setKr(0.8))
-        );
-
-        scene.getLights().add(new SpotLight(new Color(400, 400, 400), new Point(-40, -30, 0),
-                new Vector(0, 0, -1)).setKl(0.0005).setKq(0.0005));
-        scene.getLights().add(new SpotLight(new Color(800, 800, 800), new Point(60, 50, 0),
-                new Vector(0, 0, -1)).setKl(0.0005).setKq(0.0005));
-        scene.getLights().add(new DirectionalLight(new Color(100, 50, 100), new Vector(-1, -1, -1)));
-
-        ImageWriter imageWriter = new ImageWriter("myTestTrianglesAndSpheres", 600, 600);
-        camera.setImageWriter(imageWriter)
-                .setRayTracer(new RayTracerBasic(scene))
-                .renderImage()
                 .writeToImage();
     }
 }

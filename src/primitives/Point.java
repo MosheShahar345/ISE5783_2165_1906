@@ -1,6 +1,10 @@
 package primitives;
 import primitives.Double3.*;
+import static primitives.Util.*;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Objects;
+import java.util.Random;
 
 /**
  * Point class represents a point in 3D Cartesian coordinate system
@@ -24,7 +28,7 @@ public class Point {
      * Constructs a new point with the specified Double3 object.
      * @param double3 the Double3 object containing the coordinates of the point
      */
-    Point(Double3 double3){
+    public Point(Double3 double3){
         this(double3.d1, double3.d2, double3.d3);
     }
 
@@ -48,6 +52,12 @@ public class Point {
     public double getZ() {
         return xyz.d3;
     }
+
+    /**
+     * @return this point
+     */
+    public Double3 getXyz() { return xyz;}
+
     /**
      * Returns the vector from this point to the specified point.
      * @param point the point to subtract from this point
@@ -101,5 +111,39 @@ public class Point {
     @Override
     public String toString(){
         return "Point: " + this.xyz;
+    }
+
+    /**
+     * Generates a list of points within an aperture for depth of field implementation in a raytracer.
+     * @param center The center point of the aperture.
+     * @param vUp The up vector defining the orientation of the aperture.
+     * @param vRight The right vector defining the orientation of the aperture.
+     * @param density The density of points within the aperture.
+     * @param apertureRadius The radius of the aperture.
+     * @return A list of points within the aperture.
+     * @see <a href="https://openai.com/blog/chatgpt">OpenAI Blog</a>
+     * @see <a href="https://stackoverflow.com/questions/13532947/references-for-depth-of-field-implementation-in-a-raytracer">Stack Overflow Reference</a>
+     */
+    public static List<Point> pointsInAperture(Point center, Vector vUp, Vector vRight, int density, double apertureRadius) {
+        Random rand = new Random();
+        List<Point> points = new LinkedList<>();
+
+        // Generate points within the aperture
+        for (double i = -apertureRadius; i < apertureRadius; i += apertureRadius / density) {
+            double jitterOffset = rand.nextDouble(-0.1, 0.1);
+            for (double j = -apertureRadius; j < apertureRadius; j += apertureRadius / density) {
+                if (!isZero(i) && !isZero(j)) {
+                    // Calculate the position of the current point
+                    Point p = center.add(vUp.scale(i).add(vRight.scale(j + jitterOffset)));
+
+                    // Check if the point is within the aperture radius
+                    if (center.distance(p) <= apertureRadius) {
+                        points.add(p);
+                    }
+                }
+            }
+        }
+
+        return points;
     }
 }

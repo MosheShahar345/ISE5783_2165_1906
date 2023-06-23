@@ -111,5 +111,44 @@ public class Vector extends Point {
     public boolean equals(Object obj) {
         return super.equals(obj);
     }
+
+    /***
+     * Rotate the vector by angle (in degrees) and axis of rotation
+     * @param axis Axis of rotation
+     * @param theta Angle of rotation (degrees)
+     */
+    public Vector vectorRotation(Vector axis, double theta) {
+
+        // Variables used in computing
+        double x, y, z;
+        double u, v, w;
+        x = this.getXyz().d1;
+        y = this.getXyz().d2;
+        z = this.xyz.d3;
+        u = axis.xyz.d1;
+        v = axis.xyz.d2;
+        w = axis.xyz.d3;
+        double v1 = u * x + v * y + w * z;
+
+        // Convert degrees to Rad
+        double thetaRad = Math.toRadians(theta);
+
+        // Calculate X's new coordinates
+        double xPrime = u * v1 * (1d - Math.cos(thetaRad))
+                + x * Math.cos(thetaRad)
+                + (-w * y + v * z) * Math.sin(thetaRad);
+
+        // Calculate Y's new coordinates
+        double yPrime = v * v1 * (1d - Math.cos(thetaRad))
+                + y * Math.cos(thetaRad)
+                + (w * x - u * z) * Math.sin(thetaRad);
+
+        // Calculate Z's new coordinates
+        double zPrime = w * v1 * (1d - Math.cos(thetaRad))
+                + z * Math.cos(thetaRad)
+                + (-v * x + u * y) * Math.sin(thetaRad);
+
+        return new Vector(xPrime, yPrime, zPrime);
+    }
 }
 

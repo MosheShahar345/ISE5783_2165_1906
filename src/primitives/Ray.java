@@ -1,5 +1,6 @@
 package primitives;
 
+import java.util.LinkedList;
 import java.util.Objects;
 import static primitives.Util.alignZero;
 import static primitives.Util.isZero;
@@ -132,5 +133,22 @@ public class Ray {
     public Point findClosestPoint(List<Point> points) {
         return points == null || points.isEmpty() ? null :
                 findClosestGeoPoint(points.stream().map(p -> new GeoPoint(null, p)).toList()).point;
+    }
+
+    /**
+     * Generates a beam of rays from a list of points towards a target point.
+     * @param points The list of points representing the source positions of the rays.
+     * @param p The target point towards which the rays are directed.
+     * @return A list of rays pointing from the source points towards the target point.
+     */
+    public static List<Ray> beamOfRays(List<Point> points, Point p) {
+        List<Ray> rays = new LinkedList<>();
+
+        // Generate rays from source points to the target point
+        for (Point point : points) {
+            rays.add(new Ray(point, p.subtract(point)));
+        }
+
+        return rays;
     }
 }

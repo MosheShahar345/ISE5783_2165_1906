@@ -36,7 +36,7 @@ public class Scene {
     /**
      * The list of light sources.
      */
-    private final List<LightSource> lights;
+    private final List<LightSource> getLights;
 
     /**
      * Constructs a Scene object using the SceneBuilder.
@@ -47,7 +47,7 @@ public class Scene {
         background = builder.background;
         ambientLight = builder.ambientLight;
         geometries = builder.geometries;
-        lights = builder.lights;
+        getLights = builder.lights;
     }
 
     /**
@@ -97,7 +97,7 @@ public class Scene {
      * @return The list of light sources in the scene.
      */
     public List<LightSource> getLights() {
-        return lights;
+        return getLights;
     }
 
     /**
