@@ -6,7 +6,7 @@ import primitives.Point;
 import primitives.Vector;
 
 /**
- * The Geometry interface represents a geometric shape in 3D Cartesian coordinate system.
+ * The Geometry abstract represents a geometric shape in 3D Cartesian coordinate system.
  * It provides a method to calculate the normal vector of a point on the shape.
  */
 public abstract class Geometry extends Intersectable {

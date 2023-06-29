@@ -46,6 +46,4 @@ public abstract class RayTracerBase {
         }
         return averageColor.scale(1.0 / rays.size());
     }
-
-    public abstract Color AdaptiveSuperSamplingRec(Point centerP, double Width, double Height, double minWidth, double minHeight, Point cameraLoc, Vector vRight, Vector vUp, List<Point> prePoints);
 }

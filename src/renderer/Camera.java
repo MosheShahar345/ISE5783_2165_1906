@@ -4,6 +4,8 @@ import primitives.Ray;
 import primitives.Vector;
 import primitives.Color;
 import java.util.*;
+import java.util.stream.IntStream;
+
 import static primitives.Util.*;
 
 /**
@@ -61,11 +63,6 @@ public class Camera {
     private RayTracerBase rayTracer;
 
     /**
-     * Flag indicating whether depth of field is enabled.
-     */
-    private Boolean dof = false;
-
-    /**
      * Radius of the aperture for depth of field.
      */
     private double apertureRadius = 0;
@@ -81,21 +78,65 @@ public class Camera {
     private List<Point> dofPoints = null;
 
     /**
+     * Boolean field to activate or deactivate depth of field
+     */
+    private boolean dof = false;
+
+    /**
      * Density of points within the aperture for depth of field.
      */
-    private int density;
+    private int density = 1;
 
+    /**
+     * Boolean field to activate or deactivate adaptive super sampling
+     */
     private boolean adaptive = false;
 
-    private int multithreading = 1;
+    /**
+     * Counter for the number of threads
+     */
+    private int threadsCount = 0;
 
+    /**
+     * Maximum level for the recursion
+     */
+    private final int MAX_LEVEL = 3;
+
+    /**
+     * Pixel manager for supporting:
+     * <ul>
+     * <li>multi-threading</li>
+     * <li>debug print of progress percentage in Console window/tab</li>
+     * <ul> */
+    private PixelManager pixelManager;
+
+    /**
+     * Setter for depth of field
+     * @param dof
+     * @return this (Builder design pattern)
+     */
+    public Camera setDof(boolean dof) {
+        this.dof = dof;
+        return this;
+    }
+
+    /**
+     * Setter for adaptive
+     * @param adaptive
+     * @return this (Builder design pattern)
+     */
     public Camera setAdaptive(boolean adaptive) {
         this.adaptive = adaptive;
         return this;
     }
 
-    public Camera setMultithreading(int multithreading) {
-        this.multithreading = multithreading;
+    /**
+     * Setter for threadsCount
+     * @param threadsCount
+     * @return this (Builder design pattern)
+     */
+    public Camera setThreadsCount(int threadsCount) {
+        this.threadsCount = threadsCount;
         return this;
     }
 
@@ -141,53 +182,11 @@ public class Camera {
     }
 
     /**
-     * Returns the flag indicating whether depth of field is enabled.
-     * @return The depth of field flag.
-     */
-    public Boolean getDof() {
-        return dof;
-    }
-
-    /**
-     * Returns the radius of the aperture for depth of field.
-     * @return The aperture radius.
-     */
-    public double getApertureRadius() {
-        return apertureRadius;
-    }
-
-    /**
-     * Returns the focal length for depth of field.
-     * @return The focal length.
-     */
-    public double getFocalLength() {
-        return focalLength;
-    }
-
-    /**
      * Returns the list of points within the aperture for depth of field.
      * @return The list of depth of field points.
      */
     public List<Point> getDofPoints() {
         return dofPoints;
-    }
-
-    /**
-     * Returns the density of points within the aperture for depth of field.
-     * @return The density of depth of field points.
-     */
-    public int getDensity() {
-        return density;
-    }
-
-    /**
-     * Sets the flag indicating whether depth of field is enabled.
-     * @param dof The depth of field flag to set.
-     * @return this (Builder design pattern)
-     */
-    public Camera setDof(Boolean dof) {
-        this.dof = dof;
-        return this;
     }
 
     /**
@@ -328,24 +327,28 @@ public class Camera {
         }
 
         // Get the dimensions of the image from the imageWriter object
-        int nY = imageWriter.getNy();
-        int nX = imageWriter.getNx();
+        final int nX = imageWriter.getNx();
+        final int nY = imageWriter.getNy();
 
-        if (dof) { // If depth of field is active
-            dofPoints = Point.pointsInAperture(p0, vUp, vRight, density, apertureRadius);
-            // Loop over each pixel in the image and call the castBeamRay function with the pixel coordinates
-            for (int i = 0; i < nY; i++) {
-                for (int j = 0; j < nX; j++) {
-                    castBeamRay(nX ,nY, i, j, dofPoints);
-                }
+        pixelManager = new PixelManager(nY, nX, 1);
+
+        if (threadsCount == 0) { // No threads
+            for (int i = 0; i < nY; ++i) {
+                for (int j = 0; j < nX; ++j)
+                    castRay(nX, nY, j, i);
             }
         }
         else {
-            // Loop over each pixel in the image and call the castRay function with the pixel coordinates
-            for (int i = 0; i < nY; i++) {
-                for (int j = 0; j < nX; j++) {
-                    castRay(nX ,nY, i, j);
-                }
+            if (dof) { // If depth of field is enabled
+                dofPoints = Point.pointsOnAperture(p0, vUp, vRight, density, apertureRadius);
+                IntStream.range(0, nY).parallel().forEach(i -> IntStream.range(0, nX).parallel() // for each row:
+                        .forEach(j -> castBeamRay(nX, nY, j, i, dofPoints))); // for each column in row
+            } else if (adaptive) { // If adaptive super sampling is enabled
+                IntStream.range(0, nY).parallel().forEach(i -> IntStream.range(0, nX).parallel() // for each row:
+                        .forEach(j -> adaptiveSuperSampling(nX, nY, j, i))); // for each column in row
+            } else {
+                IntStream.range(0, nY).parallel().forEach(i -> IntStream.range(0, nX).parallel() // for each row:
+                        .forEach(j -> castRay(nX, nY, j, i))); // for each column in row
             }
         }
 
@@ -386,6 +389,70 @@ public class Camera {
         Color color = rayTracer.traceBeam(Ray.beamOfRays(points, point));
         // Write the color to the corresponding pixel in the image using the imageWriter object
         imageWriter.writePixel(j, i, color);
+    }
+
+    /**
+     * Performs adaptive super sampling for a given pixel at (i, j) in an image of size (nX, nY).
+     * @param nX The width of the image.
+     * @param nY The height of the image.
+     * @param i  The row index of the pixel.
+     * @param j  The column index of the pixel.
+     */
+    private void adaptiveSuperSampling(int nX, int nY, int i, int j) {
+        // Construct the center ray for the pixel at (i, j).
+        Ray center = constructRay(nX, nY, j, i);
+        // Trace the center ray to get the color at the center pixel.
+        Color centerColor = rayTracer.traceRay(center);
+        // Perform adaptive super sampling recursively.
+        Color color = adaptiveSuperSamplingRec(nX, nY, j, i, MAX_LEVEL, centerColor);
+        // Write the color to the corresponding pixel in the image using the imageWriter object.
+        imageWriter.writePixel(j, i, color);
+    }
+
+    /**
+     * Performs adaptive super sampling recursively for a given pixel at (i, j) in an image of size (nX, nY).
+     * @param nX          The width of the image.
+     * @param nY          The height of the image.
+     * @param j           The column index of the pixel.
+     * @param i           The row index of the pixel.
+     * @param maxLevel    The maximum level of recursion.
+     * @param centerColor The color at the center pixel.
+     * @return The computed color for the pixel.
+     */
+    private Color adaptiveSuperSamplingRec(int nX, int nY, int j, int i, int maxLevel, Color centerColor) {
+        // Base case: if the maximum level of recursion is reached, return the center color.
+        if (maxLevel <= 0) {
+            return centerColor;
+        }
+
+        // Initialize the color with the center color.
+        Color color = centerColor;
+
+        // Create a list of rays for the four sub-pixels.
+        List<Ray> beam = new LinkedList<>();
+        beam.add(constructRay(2 * nX, 2 * nY, 2 * j, 2 * i));
+        beam.add(constructRay(2 * nX, 2 * nY, 2 * j, 2 * i + 1));
+        beam.add(constructRay(2 * nX, 2 * nY, 2 * j + 1, 2 * i));
+        beam.add(constructRay(2 * nX, 2 * nY, 2 * j + 1, 2 * i + 1));
+
+        // Iterate over the four sub-pixels.
+        for (int ray = 0; ray < 4; ray++) {
+            // Trace the current ray to get the color of the sub-pixel.
+            Color currentColor = rayTracer.traceRay(beam.get(ray));
+
+            // If the current color is different from the center color, perform recursive adaptive super sampling.
+            if (!currentColor.equals(centerColor)) {
+                currentColor = adaptiveSuperSamplingRec(
+                        2 * nX, 2 * nY, 2 * j + ray / 2, 2 * i + ray % 2, (maxLevel - 1), currentColor
+                );
+            }
+
+            // Add the current color to the accumulated color.
+            color = color.add(currentColor);
+        }
+
+        // Reduce the accumulated color by dividing it by 5.
+        return color.reduce(5);
     }
 
     /**
@@ -435,32 +502,25 @@ public class Camera {
      * @param axis Axis of rotation
      * @param theta Angle of rotation (degrees)
      */
-    public void cameraRotation(Vector axis, double theta)
+    public Camera cameraRotation(Vector axis, double theta)
     {
-        // Rotate all vector's using Vector.rotateVector Method
-        if (theta == 0) return; // No rotation
-        vUp = vUp.vectorRotation(axis, theta);
-        vRight = vRight.vectorRotation(axis, theta);
-        vTo = vTo.vectorRotation(axis, theta);
+        // Rotate all vectors using vectorRotation method
+        if (isZero(theta)) return this; // No rotation
+        this.vUp = vUp.vectorRotation(axis, theta);
+        this.vRight = vRight.vectorRotation(axis, theta);
+        this.vTo = vTo.vectorRotation(axis, theta);
+        return this;
     }
 
     /**
      * Move camera (move point of view of the camera)
      * @param move {@link Vector} Vertical distance
      */
-    public void moveCamera(Vector move) {
-        // Move Point0 according to params
+    public Camera moveCamera(Vector move) {
+        // Move p0 according to params
         Point newPoint = new Point(p0.getXyz());
-        newPoint=  newPoint.add(move);
-        p0 = newPoint;
-    }
-
-    public Point getP0() {
-        return this.p0;
-    }
-
-    public Camera setP0(Point p) {
-        this.p0 = p;
+        newPoint = newPoint.add(move);
+        this.p0 = newPoint;
         return this;
     }
 }

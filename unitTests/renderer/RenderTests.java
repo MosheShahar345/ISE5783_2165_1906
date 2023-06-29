@@ -11,7 +11,6 @@ import geometries.Sphere;
 import geometries.Triangle;
 import lighting.AmbientLight;
 import primitives.*;
-import renderer.*;
 import scene.Scene;
 
 /**
@@ -49,8 +48,6 @@ public class RenderTests {
         camera.printGrid(100, new Color(YELLOW));
         camera.writeToImage();
     }
-
-    // For stage 6 - please disregard in stage 5
 
     /**
      * Produce a scene with basic 3D model - including individual lights of the
@@ -98,7 +95,8 @@ public class RenderTests {
                 new Point(0, 20, 2500),
                 new Vector(0, 0, -1),
                 new Vector(0, 1, 0)
-        ).setVPSize(200, 200).setVPDistance(850).setDof(true).setFocalLength(1600).setApertureRadius(20).setDensity(9);
+        ).setVPSize(200, 200).setVPDistance(850).setFocalLength(1600)
+                .setApertureRadius(20).setDensity(9).setThreadsCount(4).setDof(true);
 
         // Add a plane to the scene
         scene.getGeometries().add(
@@ -155,14 +153,15 @@ public class RenderTests {
     /**
      * Produce a picture of sphere and cube in a room, illuminated by two narrow beamed spotLights.
      * Includes transparency and reflection properties of the room, and the geometries inside it.
+     * Additionally, camera rotation fetcher to capture the inside of the room from a different angle.
      */
     @Test
     public void myTestRoomWithSphereAndCube() {
         Scene scene = new Scene.SceneBuilder("Test scene").build();
 
         Camera camera = new Camera(new Point(0, 0, 350), new Vector(0, 0, -1),
-                new Vector(0, 1, 0)).setVPSize(150, 150).setVPDistance(150)
-                .setDof(false).setFocalLength(50).setApertureRadius(20).setDensity(5);
+                new Vector(0, 1, 0)).setVPSize(150, 150).setVPDistance(150).setThreadsCount(4)
+                .setAdaptive(true).setDensity(5);
 
         scene.setAmbientLight(new AmbientLight(new Color(WHITE), 0.01));
 
@@ -171,140 +170,149 @@ public class RenderTests {
                 //------------Polygons for the room------------//
                 new Polygon( // Front wall
                         new Point(150, 150, -150),
-                        new Point(150,-150,-150),
-                        new Point(-150,-150,-150),
-                        new Point(-150,150,-150)).setEmission(
+                        new Point(150, -150, -150),
+                        new Point(-150, -150, -150),
+                        new Point(-150, 150, -150)).setEmission(
                         new Color(GRAY)).setMaterial(
                         new Material().setKd(0.5).setKs(0.5).setShininess(10)),
 
                 new Polygon( // Right wall
-                        new Point(150,150,-150),
-                        new Point(150,-150,-150),
-                        new Point(150,-150,150),
-                        new Point(150,150,150)).setEmission(
+                        new Point(150, 150, -150),
+                        new Point(150, -150, -150),
+                        new Point(150, -150, 150),
+                        new Point(150, 150, 150)).setEmission(
                         new Color(GREEN)).setMaterial(
                         new Material().setKd(0.5).setKs(0.5).setShininess(10)),
 
                 new Polygon( // Left wall
-                        new Point(-150,150,-150),
-                        new Point(-150,-150,-150),
-                        new Point(-150,-150,150),
-                        new Point(-150,150,150)).setEmission(
+                        new Point(-150, 150, -150),
+                        new Point(-150, -150, -150),
+                        new Point(-150, -150, 150),
+                        new Point(-150, 150, 150)).setEmission(
                         new Color(RED)).setMaterial(
                         new Material().setKd(0.5).setKs(0.5).setShininess(10)),
 
                 new Polygon( // Ceiling
-                        new Point(150,150,-150),
-                        new Point(-150,150,-150),
-                        new Point(-150,150,150),
-                        new Point(150,150,150)).setEmission(
+                        new Point(150, 150, -150),
+                        new Point(-150, 150, -150),
+                        new Point(-150, 150, 150),
+                        new Point(150, 150, 150)).setEmission(
                         new Color(GRAY)).setMaterial(
                         new Material().setKd(0.5).setKs(0.5).setShininess(10)),
 
                 new Polygon( // Floor
-                        new Point(-150,-150,-150),
-                        new Point(150,-150,-150),
-                        new Point(150,-150,150),
-                        new Point(-150,-150,150)).setEmission(
+                        new Point(-150, -150, -150),
+                        new Point(150, -150, -150),
+                        new Point(150, -150, 150),
+                        new Point(-150, -150, 150)).setEmission(
                         new Color(GRAY)).setMaterial(
                         new Material().setKd(0.5).setKs(0.5).setShininess(10).setKr(0.1)),
 
                 //------------Geometries inside the room------------//
                 // Sphere on the left side of the room
-                new Sphere(53,
-                        new Point(-83,-98,-90)).setEmission(new Color(50, 50, 224)).setMaterial(
+                new Sphere(50,
+                        new Point(-80,-100,-85)).setEmission(new Color(50, 50, 224)).setMaterial(
                         new Material().setKr(0.3).setKd(0.2).setKs(0.2).setShininess(100)),
 
                 // Polygons for the cube
                 new Polygon(
-                        new Point(60,-30,45),
-                        new Point(-15,-30,-30),
-                        new Point(60,-30,-106),
-                        new Point(136,-30,-30)
+                        new Point(60,-150,-121),
+                        new Point(60,-30,-121),
+                        new Point(-15,-30,-45),
+                        new Point(-15,-150,-45)
                 ).setMaterial(new Material()
                         .setKr(0.4)
                         .setKd(0.6)
                         .setKs(0.4)
                         .setShininess(100)
                         .setKt(0.1)
-                ).setEmission(new Color(200,10,60)),
+                ).setEmission(new Color(200, 10, 60)),
 
                 new Polygon(
-                        new Point(60,-150,45),
-                        new Point(-15,-150,-30),
-                        new Point(60,-150,-106),
-                        new Point(136,-150,-30)
+                        new Point(136,-150,-45),
+                        new Point(136,-30,-45),
+                        new Point(60,-30,-121),
+                        new Point(60,-150,-121)
                 ).setMaterial(new Material()
                         .setKr(0.4)
                         .setKd(0.6)
                         .setKs(0.4)
                         .setShininess(100)
                         .setKt(0.1)
-                ).setEmission(new Color(200,10,60)),
+                ).setEmission(new Color(200, 10, 60)),
 
                 new Polygon(
-                        new Point(60,-150,45),
-                        new Point(60,-30,45),
-                        new Point(-15,-30,-30),
-                        new Point(-15,-150,-30)
+                        new Point(60,-150,30),
+                        new Point(60,-30,30),
+                        new Point(136,-30,-45),
+                        new Point(136,-150,-45)
                 ).setMaterial(new Material()
                         .setKr(0.4)
                         .setKd(0.6)
                         .setKs(0.4)
                         .setShininess(100)
                         .setKt(0.1)
-                ).setEmission(new Color(200,10,60)),
+                ).setEmission(new Color(200, 10, 60)),
 
                 new Polygon(
-                        new Point(60,-150,45),
-                        new Point(60,-30,45),
-                        new Point(136,-30,-30),
-                        new Point(136,-150,-30)
+                        new Point(60,-150,30),
+                        new Point(60,-30,30),
+                        new Point(-15,-30,-45),
+                        new Point(-15,-150,-45)
                 ).setMaterial(new Material()
                         .setKr(0.4)
                         .setKd(0.6)
                         .setKs(0.4)
                         .setShininess(100)
                         .setKt(0.1)
-                ).setEmission(new Color(200,10,60)),
+                ).setEmission(new Color(200, 10, 60)),
 
                 new Polygon(
-                        new Point(136,-150,-30),
-                        new Point(136,-30,-30),
-                        new Point(60,-30,-106),
-                        new Point(60,-150,-106)
+                        new Point(60,-150,30),
+                        new Point(-15,-150,-45),
+                        new Point(60,-150,-121),
+                        new Point(136,-150,-45)
                 ).setMaterial(new Material()
                         .setKr(0.4)
                         .setKd(0.6)
                         .setKs(0.4)
                         .setShininess(100)
                         .setKt(0.1)
-                ).setEmission(new Color(200,10,60)),
+                ).setEmission(new Color(200, 10, 60)),
 
                 new Polygon(
-                        new Point(60,-150,-106),
-                        new Point(60,-30,-106),
-                        new Point(-15,-30,-30),
-                        new Point(-15,-150,-30)
+                        new Point(60,-30,30),
+                        new Point(-15,-30,-45),
+                        new Point(60,-30,-121),
+                        new Point(136,-30,-45)
                 ).setMaterial(new Material()
                         .setKr(0.4)
                         .setKd(0.6)
                         .setKs(0.4)
                         .setShininess(100)
                         .setKt(0.1)
-                ).setEmission(new Color(200,10,60))
+                ).setEmission(new Color(200, 10, 60))
         );
 
         //------------LightSources------------//
         scene.getLights().add( // Spot from the left
-                new SpotLight(new Color(GRAY), new Point(-130, 0, 150), new Vector(1,0,-1)).setNarrowBeam(3)
+                new SpotLight(new Color(GRAY), new Point(-130, 0, 150), new Vector(1, 0, -1)).setNarrowBeam(3)
         );
         scene.getLights().add( // Spot from the right
-                new SpotLight(new Color(GRAY), new Point(130, 100, 150), new Vector(-1,0,-1)).setNarrowBeam(3)
+                new SpotLight(new Color(GRAY), new Point(130, 100, 150), new Vector(-1, 0, -1)).setNarrowBeam(3)
         );
 
         //------------Write to image------------//
         ImageWriter imageWriter = new ImageWriter("roomWithSphereAndCube", 1200, 1200);
+        camera.setImageWriter(imageWriter)
+                .setRayTracer(new RayTracerBasic(scene))
+                .renderImage()
+                .writeToImage();
+
+        // Rotating the camera to left while adapting the distance of the VP
+        camera.moveCamera(new Vector(-130,0,-190)).cameraRotation(new Vector(0,1,0), -30).setVPDistance(90);
+
+        imageWriter = new ImageWriter("roomWithSphereAndCubeRotation", 1200, 1200);
         camera.setImageWriter(imageWriter)
                 .setRayTracer(new RayTracerBasic(scene))
                 .renderImage()

@@ -1,5 +1,4 @@
 package primitives;
-import primitives.Double3.*;
 import static primitives.Util.*;
 import java.util.LinkedList;
 import java.util.List;
@@ -124,7 +123,7 @@ public class Point {
      * @see <a href="https://openai.com/blog/chatgpt">OpenAI Blog</a>
      * @see <a href="https://stackoverflow.com/questions/13532947/references-for-depth-of-field-implementation-in-a-raytracer">Stack Overflow Reference</a>
      */
-    public static List<Point> pointsInAperture(Point center, Vector vUp, Vector vRight, int density, double apertureRadius) {
+    public static List<Point> pointsOnAperture(Point center, Vector vUp, Vector vRight, int density, double apertureRadius) {
         Random rand = new Random();
         List<Point> points = new LinkedList<>();
 
